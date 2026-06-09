@@ -1,0 +1,32 @@
+Accuracy: 0.0000
+
+Classification Report:
+                                  precision    recall  f1-score   support
+
+                         Flicker       0.00      0.00      0.00       1.0
+                Flicker with Sag       0.00      0.00      0.00       1.0
+              Flicker with Swell       0.00      0.00      0.00       0.0
+                       Harmonics       0.00      0.00      0.00       0.0
+              Harmonics with Sag       0.00      0.00      0.00       0.0
+            Harmonics with Swell       0.00      0.00      0.00       1.0
+                           Notch       0.00      0.00      0.00       0.0
+              Sag with Harmonics       0.00      0.00      0.00       1.0
+            Swell with Harmonics       0.00      0.00      0.00       1.0
+Swell with Oscillatory Transient       0.00      0.00      0.00       1.0
+
+                        accuracy                           0.00       6.0
+                       macro avg       0.00      0.00      0.00       6.0
+                    weighted avg       0.00      0.00      0.00       6.0
+
+
+Confusion Matrix:
+[[0 0 0 1 0 0 0 0 0 0]
+ [0 0 0 0 0 0 1 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0]
+ [0 0 1 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 1 0 0 0 0 0]
+ [0 0 1 0 0 0 0 0 0 0]
+ [0 0 1 0 0 0 0 0 0 0]]
