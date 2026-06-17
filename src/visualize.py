@@ -33,6 +33,8 @@ CLASS_NAMES = [
     "Notch",
 ]
 
+OUTPUT_DIR = DATA_DIR / "visualizations"
+
 
 def load_signal_data(mat_path: Path = MAT_PATH) -> Tuple[np.ndarray, List[str]]:
     if not mat_path.exists():
@@ -120,6 +122,68 @@ def plot_confusion_matrix() -> None:
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.tight_layout()
+    fig = plt.gcf()
+    ensure_output_dir()
+    cm_plot_path = OUTPUT_DIR / "dnn_confusion_matrix.png"
+    fig.savefig(cm_plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved confusion matrix to: {cm_plot_path}")
+    plt.show()
+
+
+def ensure_output_dir() -> None:
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def load_training_history(history_path: Path) -> dict:
+    if not history_path.exists():
+        raise FileNotFoundError(f"Training history not found: {history_path}")
+    with history_path.open("rb") as handle:
+        return pickle.load(handle)
+
+
+def load_dnn_training_history() -> dict:
+    return load_training_history(DATA_DIR / "training_history_dnn.pkl")
+
+
+def plot_dnn_training_history() -> None:
+    try:
+        history = load_dnn_training_history()
+    except FileNotFoundError:
+        print("DNN training history not found. Skipping DNN training plot.")
+        return
+
+    train_losses = history.get("train_loss", [])
+    val_losses = history.get("val_loss", [])
+    train_accs = history.get("train_acc", [])
+    val_accs = history.get("val_acc", [])
+
+    if not train_losses or not train_accs:
+        print("DNN training history is incomplete.")
+        return
+
+    ensure_output_dir()
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    axes[0].plot(train_losses, label="Train Loss", color="tab:blue", linewidth=2)
+    axes[0].plot(val_losses, label="Val Loss", color="tab:orange", linestyle="--", linewidth=2)
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss")
+    axes[0].set_title("Training and Validation Loss (DNN)")
+    axes[0].legend()
+    axes[0].grid(True)
+
+    axes[1].plot(train_accs, label="Train Accuracy", color="tab:green", linewidth=2)
+    axes[1].plot(val_accs, label="Val Accuracy", color="tab:red", linestyle="--", linewidth=2)
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Accuracy")
+    axes[1].set_title("Training and Validation Accuracy (DNN)")
+    axes[1].legend()
+    axes[1].grid(True)
+
+    plt.tight_layout()
+    plot_path = OUTPUT_DIR / "training_history_dnn.png"
+    fig.savefig(plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved DNN training history plot to: {plot_path}")
     plt.show()
 
 
@@ -158,6 +222,10 @@ def plot_training_history() -> None:
     axes[1].grid(True)
 
     plt.tight_layout()
+    ensure_output_dir()
+    cnn_plot_path = OUTPUT_DIR / "training_history_cnn.png"
+    fig.savefig(cnn_plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved CNN training history plot to: {cnn_plot_path}")
     plt.show()
 
 
@@ -240,6 +308,10 @@ def main() -> None:
     if (DATA_DIR / "training_history_cnn.pkl").exists():
         print("Plotting CNN training history...")
         plot_training_history()
+
+    if (DATA_DIR / "training_history_dnn.pkl").exists():
+        print("Plotting DNN training history...")
+        plot_dnn_training_history()
 
     if MODEL_PATH.exists() and TEST_SPLIT_PATH.exists():
         print("Plotting confusion matrix for saved DNN model...")

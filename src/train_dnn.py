@@ -11,7 +11,7 @@ from scipy.stats import kurtosis, skew
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, log_loss
 
 DATA_DIR = Path(__file__).resolve().parent.parent
 MAT_PATH = DATA_DIR / "archive" / "XPQRS" / "5Kfs_1Cycle_50f_1000Sam_1A.mat"
@@ -19,6 +19,7 @@ MODEL_PATH = DATA_DIR / "trained_dnn.pkl"
 REPORT_PATH = DATA_DIR / "training_dnn_report.txt"
 TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
 SCALER_PATH = DATA_DIR / "scaler_dnn.pkl"
+HISTORY_PATH = DATA_DIR / "training_history_dnn.pkl"
 
 CLASS_NAMES = [
     "Pure Sinusoidal",
@@ -104,10 +105,9 @@ def build_model() -> MLPClassifier:
         solver="adam",
         alpha=1e-4,
         batch_size=128,
-        max_iter=200,
-        early_stopping=True,
-        validation_fraction=0.1,
-        n_iter_no_change=15,
+        max_iter=1,
+        warm_start=True,
+        early_stopping=False,
         tol=1e-4,
         random_state=42,
         verbose=False,
@@ -117,6 +117,47 @@ def build_model() -> MLPClassifier:
 def save_pickle(obj: Any, path: Path) -> None:
     with path.open("wb") as handle:
         pickle.dump(obj, handle)
+
+
+def train_with_history(
+    model: MLPClassifier,
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    max_epochs: int = 200,
+) -> dict:
+    history = {
+        "train_loss": [],
+        "val_loss": [],
+        "train_acc": [],
+        "val_acc": [],
+    }
+
+    class_labels = np.unique(y_train)
+
+    for epoch in range(1, max_epochs + 1):
+        model.fit(X_train, y_train)
+
+        y_train_pred = model.predict(X_train)
+        y_val_pred = model.predict(X_val)
+
+        train_loss = log_loss(y_train, model.predict_proba(X_train), labels=class_labels)
+        val_loss = log_loss(y_val, model.predict_proba(X_val), labels=class_labels)
+        train_acc = accuracy_score(y_train, y_train_pred)
+        val_acc = accuracy_score(y_val, y_val_pred)
+
+        history["train_loss"].append(train_loss)
+        history["val_loss"].append(val_loss)
+        history["train_acc"].append(train_acc)
+        history["val_acc"].append(val_acc)
+
+        print(
+            f"Epoch {epoch:03d}: train_loss={train_loss:.4f}, val_loss={val_loss:.4f}, "
+            f"train_acc={train_acc:.4f}, val_acc={val_acc:.4f}"
+        )
+
+    return history
 
 
 def evaluate_report(
@@ -212,7 +253,9 @@ def main() -> None:
 
     model = build_model()
     print("Training MLPClassifier...")
-    model.fit(X_train, y_train)
+    history = train_with_history(model, X_train, y_train, X_val, y_val, max_epochs=200)
+    save_pickle(history, HISTORY_PATH)
+    print(f"Saved training history to: {HISTORY_PATH}")
 
     val_acc, test_acc, report = evaluate_report(model, encoder, X_val, y_val, X_test, y_test)
 
