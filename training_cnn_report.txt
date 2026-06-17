@@ -1,58 +1,58 @@
 CNN1D Training Report
 ==================================================
-Validation accuracy: 0.1324
-Test accuracy: 0.1112
+Validation accuracy: 0.1218
+Test accuracy: 0.1088
 
-Best epoch: 34
-Final train loss: 0.7381
-Final val loss: 5.4297
+Best epoch: 25
+Final train loss: 1.1795
+Final val loss: 4.4587
 
 Validation classification report:
                                   precision    recall  f1-score   support
 
-                         Flicker       0.08      0.09      0.09       100
-                Flicker with Sag       0.11      0.11      0.11       100
-              Flicker with Swell       0.15      0.13      0.14       100
-                       Harmonics       0.15      0.13      0.14       100
-              Harmonics with Sag       0.10      0.13      0.11       100
-            Harmonics with Swell       0.15      0.14      0.15       100
-                    Interruption       0.10      0.09      0.10       100
-                           Notch       0.14      0.12      0.13       100
-           Oscillatory Transient       0.13      0.14      0.14       100
-                 Pure Sinusoidal       0.19      0.17      0.18       100
-                             Sag       0.11      0.11      0.11       100
-              Sag with Harmonics       0.19      0.17      0.18       100
-  Sag with Oscillatory Transient       0.11      0.13      0.12       100
-                           Swell       0.19      0.28      0.22       100
-            Swell with Harmonics       0.12      0.13      0.13       100
-Swell with Oscillatory Transient       0.09      0.07      0.08       100
-                       Transient       0.12      0.11      0.11       100
+                         Flicker       0.13      0.14      0.14       100
+                Flicker with Sag       0.16      0.11      0.13       100
+              Flicker with Swell       0.07      0.07      0.07       100
+                       Harmonics       0.16      0.23      0.19       100
+              Harmonics with Sag       0.14      0.15      0.14       100
+            Harmonics with Swell       0.21      0.18      0.19       100
+                    Interruption       0.07      0.08      0.07       100
+                           Notch       0.07      0.06      0.07       100
+           Oscillatory Transient       0.11      0.11      0.11       100
+                 Pure Sinusoidal       0.17      0.19      0.18       100
+                             Sag       0.09      0.07      0.08       100
+              Sag with Harmonics       0.09      0.09      0.09       100
+  Sag with Oscillatory Transient       0.16      0.15      0.16       100
+                           Swell       0.12      0.11      0.12       100
+            Swell with Harmonics       0.12      0.13      0.12       100
+Swell with Oscillatory Transient       0.07      0.08      0.07       100
+                       Transient       0.12      0.12      0.12       100
 
-                        accuracy                           0.13      1700
-                       macro avg       0.13      0.13      0.13      1700
-                    weighted avg       0.13      0.13      0.13      1700
+                        accuracy                           0.12      1700
+                       macro avg       0.12      0.12      0.12      1700
+                    weighted avg       0.12      0.12      0.12      1700
 
 
 Test classification report:
                                   precision    recall  f1-score   support
 
-                         Flicker       0.12      0.16      0.14       100
-                Flicker with Sag       0.08      0.08      0.08       100
-              Flicker with Swell       0.09      0.08      0.09       100
-                       Harmonics       0.09      0.09      0.09       100
-              Harmonics with Sag       0.13      0.14      0.13       100
-            Harmonics with Swell       0.09      0.11      0.10       100
-                    Interruption       0.15      0.12      0.13       100
-                           Notch       0.11      0.09      0.10       100
-           Oscillatory Transient       0.20      0.18      0.19       100
-                 Pure Sinusoidal       0.20      0.20      0.20       100
-                             Sag       0.10      0.10      0.10       100
-              Sag with Harmonics       0.04      0.04      0.04       100
-  Sag with Oscillatory Transient       0.09      0.11      0.10       100
-                           Swell       0.14      0.14      0.14       100
-            Swell with Harmonics       0.14      0.14      0.14       100
-Swell with Oscillatory Transient       0.03      0.02      0.02       100
-                       Transient       0.08      0.09      0.08       100
+                         Flicker       0.12      0.11      0.12       100
+                Flicker with Sag       0.11      0.07      0.09       100
+              Flicker with Swell       0.16      0.16      0.16       100
+                       Harmonics       0.16      0.24      0.19       100
+              Harmonics with Sag       0.07      0.07      0.07       100
+            Harmonics with Swell       0.10      0.08      0.09       100
+                    Interruption       0.15      0.18      0.16       100
+                           Notch       0.08      0.08      0.08       100
+           Oscillatory Transient       0.03      0.02      0.02       100
+                 Pure Sinusoidal       0.19      0.21      0.20       100
+                             Sag       0.11      0.09      0.10       100
+              Sag with Harmonics       0.08      0.08      0.08       100
+  Sag with Oscillatory Transient       0.11      0.10      0.10       100
+                           Swell       0.07      0.06      0.06       100
+            Swell with Harmonics       0.10      0.12      0.11       100
+Swell with Oscillatory Transient       0.07      0.09      0.08       100
+                       Transient       0.10      0.09      0.09       100
 
                         accuracy                           0.11      1700
                        macro avg       0.11      0.11      0.11      1700
@@ -60,20 +60,20 @@ Swell with Oscillatory Transient       0.03      0.02      0.02       100
 
 
 Test confusion matrix:
-[[16 11  3  4  7  0  6  7  1  7  2  7  7  2  8  6  6]
- [13  8  5  5  5  6  5  6  7  6  4  3  6  3  7  2  9]
- [ 6  6  8  9  4 10  6  2  7  1  8 10  1  5  4  5  8]
- [ 4  3  4  9  9  9  3  5  9  4  6  6  9  1  6  6  7]
- [ 6  0  8  4 14  6  2  3  7  3  7  5 10  6  5  4 10]
- [ 5  8  2 12  5 11  1  4  4  3  5  3 13  6  8  2  8]
- [11  4  7  1  6  3 12  4  5 12  4  5  3 11  5  3  4]
- [10  6  3  7  6  3  7  9  4  2  5  7 10  7  5  5  4]
- [ 6  4  7  5  8  6  1  9 18  2  7  8  5  2  1  7  4]
- [ 4  3  6  4  3  9  9  2  0 20  8  3  8 10  3  5  3]
- [ 5  6  5  2  6 13  3  3  3  6 10  4  6  4  9  6  9]
- [ 4  6  7  6  8 10  4  6  6  3  7  4  4  4  6  7  8]
- [ 9  6  8  8  6  6  5  3  5  7  4  8 11  2  5  3  4]
- [ 6  6  3  3  3  5  6  7  4  5  5 11  3 14  2  7 10]
- [ 1  5  7  6  7  9  3  5  1  8  4  7  7  6 14  4  6]
- [ 9  9  2  4  8 12  5  3  4  6  7  1  9  8  5  2  6]
- [14  4  3 12  3  6  4  2  3  5  8  4  5  8  6  4  9]]
+[[11  3  5  4  2  4 16  6  3 11  3  2  6  6  6  8  4]
+ [11  7  4  4  7  3  8  2  2  4  5  8  7  7  7 10  4]
+ [ 0  3 16  8  4  5  1  9  5  6  8  9  6  3 10  5  2]
+ [ 1  2  4 24  4  6  2  7  7  4  4  6  3  3  8  9  6]
+ [ 3  3 12  7  7  4  8  3  7  6  4  6  5  5 10  4  6]
+ [ 8  4  4 13  6  8  5  3  8  4  9  4  2  0  6  9  7]
+ [ 7  3  8  4  6  5 18  5  4  4  3  4  3  9  4  7  6]
+ [ 5  2  1  9  7  7  7  8  4  6  3  5  8  8  4  9  7]
+ [ 4  4  6 11 11  7  7  5  2  1  6  3  6  7  4  9  7]
+ [ 2  4  6  7  6  2  6  2  2 21  7  8  6  5  7  7  2]
+ [ 2  2  4  7  2  2  4  9  4  7  9  7  4  7 14  3 13]
+ [ 8  2  6  6  7  6 10  4  5  1  2  8  9  4 10 10  2]
+ [ 4  6  5 11  3  3 10  5  7  8  1  5 10  1  5  8  8]
+ [12  8  2  2  9  2  7 10  1 11  4  8  3  6  3  9  3]
+ [ 2  4  3 11  7  8  2  7  6  8  7  2  7  5 12  6  3]
+ [ 6  3  7  9  6  7  6  3 10  4  3 11  2  5  5  9  4]
+ [ 3  2  7 16  7  3  4  7  1  4  3  8  6  4  6 10  9]]
