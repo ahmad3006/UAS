@@ -249,10 +249,11 @@ def plot_training_history() -> None:
 
     train_losses = history.get("train_losses", [])
     val_losses = history.get("val_losses", [])
+    train_accs = history.get("train_accs", [])
     val_accs = history.get("val_accs", [])
 
-    if not train_losses:
-        print("Training history is empty.")
+    if not train_losses or not train_accs:
+        print("CNN training history is incomplete.")
         return
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
@@ -265,10 +266,11 @@ def plot_training_history() -> None:
     axes[0].legend()
     axes[0].grid(True)
 
-    axes[1].plot(val_accs, label="Val Accuracy", linewidth=2, color="green")
+    axes[1].plot(train_accs, label="Train Accuracy", linewidth=2, color="tab:green")
+    axes[1].plot(val_accs, label="Val Accuracy", linewidth=2, color="tab:red", linestyle="--")
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Accuracy")
-    axes[1].set_title("Validation Accuracy (CNN)")
+    axes[1].set_title("Training and Validation Accuracy (CNN)")
     axes[1].legend()
     axes[1].grid(True)
 

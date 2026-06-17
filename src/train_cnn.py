@@ -126,9 +126,12 @@ def train_epoch(
     loader: torch.utils.data.DataLoader,
     criterion: nn.CrossEntropyLoss,
     optimizer: optim.Optimizer,
-) -> float:
+) -> Tuple[float, float]:
     model.train()
     total_loss = 0.0
+    correct = 0
+    total = 0
+
     for X_batch, y_batch in loader:
         X_batch, y_batch = X_batch.to(DEVICE), y_batch.to(DEVICE)
 
@@ -139,8 +142,13 @@ def train_epoch(
         optimizer.step()
 
         total_loss += loss.item() * X_batch.size(0)
+        _, predicted = torch.max(output.data, 1)
+        total += y_batch.size(0)
+        correct += (predicted == y_batch).sum().item()
 
-    return total_loss / len(loader.dataset)
+    avg_loss = total_loss / len(loader.dataset)
+    accuracy = correct / total if total > 0 else 0.0
+    return avg_loss, accuracy
 
 
 def validate_epoch(
@@ -234,18 +242,21 @@ def main() -> None:
     patience_counter = 0
     train_losses = []
     val_losses = []
+    train_accs = []
     val_accs = []
 
     for epoch in range(args.epochs):
-        train_loss = train_epoch(model, train_loader, criterion, optimizer)
+        train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer)
         val_loss, val_acc = validate_epoch(model, val_loader, criterion)
 
         train_losses.append(train_loss)
         val_losses.append(val_loss)
+        train_accs.append(train_acc)
         val_accs.append(val_acc)
 
         print(f"Epoch {epoch + 1}/{args.epochs} - "
-              f"Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+              f"Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
+              f"Train Acc: {train_acc:.4f}, Val Acc: {val_acc:.4f}")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -290,7 +301,12 @@ def main() -> None:
     save_pickle({"model_state": model.state_dict(), "scaler": scaler, "label_encoder": encoder}, MODEL_PATH)
     save_pickle({"X_test": X_test, "y_test": y_test_names}, TEST_SPLIT_PATH)
     save_pickle(
-        {"train_losses": train_losses, "val_losses": val_losses, "val_accs": val_accs},
+        {
+            "train_losses": train_losses,
+            "val_losses": val_losses,
+            "train_accs": train_accs,
+            "val_accs": val_accs,
+        },
         DATA_DIR / "training_history_cnn.pkl",
     )
 
