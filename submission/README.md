@@ -143,7 +143,75 @@ python code/visualize.py
 | MLP | Engineered Features | [TBD] | [TBD] | Feature richness |
 | CNN 1D | Raw Signal | [TBD] | [TBD] | Time-series pattern recognition |
 
+
+## 3.1 Preprocessing Data
+
+Bagian ini menjawab persyaratan detail preprocessing untuk dataset XPQRS dan menjelaskan keputusan yang diterapkan di pipeline.
+
+- **Apakah ada missing values?**
+
+   Dataset XPQRS yang digunakan (file MAT pada `archive/XPQRS`) tidak mengandung missing values eksplisit pada level sampel sinyal; namun modul `src/preprocess.py` mengabaikan (skip) record yang tidak menghasilkan sekumpulan nilai numerik valid saat parsing. Implementasi saat ini:
+
+   - Jika sinyal tidak berisi angka yang dapat diparsing, record tersebut dilewati (dropped) pada tahap ekstraksi fitur (`ensure_float_sequence` + `extract_features`).
+   - Alasan: sinyal kosong biasanya menandakan korupsi atau format yang tidak sesuai; meng-drop lebih aman dibanding meng-impute, karena imputasi pada urutan waktu dapat merusak pola temporal.
+
+- **Normalisasi / Standardisasi fitur**
+
+   Pipeline training menggunakan `StandardScaler` untuk mentransformasikan fitur numerik sebelum pelatihan:
+
+   - Contoh (dari `src/train_dnn.py` / `src/train_cnn.py`):
+
+      ```python
+      scaler = StandardScaler()
+      X_train = scaler.fit_transform(X_train)
+      X_val = scaler.transform(X_val)
+      X_test = scaler.transform(X_test)
+      ```
+
+   - Metode dipilih: `StandardScaler` (mean=0, std=1). Alasan: banyak model (MLP, optimizers, dan gradient-based training) sensitif terhadap skala fitur sehingga standardisasi biasanya mempercepat konvergensi dan menstabilkan training.
+   - Risiko jika tidak dilakukan: fitur dengan skala besar dapat mendominasi gradien, menyebabkan training lambat atau tidak stabil; untuk CNN 1D pada raw signal, scaling juga membantu agar bobot konvolusi terkontrol.
+
+- **Fitur kategorikal dan encoding**
+
+   - Target label adalah kategorikal (17 kelas). Di seluruh pipeline label dikonversi menggunakan `LabelEncoder`:
+
+      ```python
+      encoder = LabelEncoder()
+      y_encoded = encoder.fit_transform(y)
+      ```
+
+   - Perbedaan singkat: `LabelEncoder` memberi integer per kelas (0..K-1) — cocok untuk API scikit-learn (`MLPClassifier`) dan untuk penggunaan loss categorical (softmax + CrossEntropy). `One-hot encoding` membuat representasi vektor biner panjang K — berguna jika model eksplisit memerlukan vektor target (mis. Keras dengan to_categorical) atau untuk feature kategorikal input.
+
+   - Pada pipeline ini, `LabelEncoder` digunakan untuk target karena training API (sklearn/PyTorch) menerima label berbentuk integer dan internal loss function mengharapkan integer class index.
+
+- **Reshape untuk CNN 1D**
+
+   - Untuk `CNN 1D`, data time-series direpresentasikan sebagai array 2D `(n_samples, timesteps)` lalu diubah menjadi tensor PyTorch 3D dengan channel tunggal:
+
+      ```python
+      # di train_cnn.py
+      torch.from_numpy(X_train).unsqueeze(1).float()
+      # hasil shape -> (n_samples, 1, timesteps)
+      ```
+
+   - Penjelasan: `unsqueeze(1)` menambahkan dimensi channel sehingga input memenuhi format `(batch, channels, sequence_length)` yang diharapkan oleh `nn.Conv1d`.
+
+- **Catatan untuk CNN 2D (tidak digunakan di repo ini)**
+
+   - Repo saat ini tidak mengimplementasikan CNN 2D. Jika menggunakan CNN 2D untuk citra, praktik umum yang direkomendasikan:
+      - Resize citra ke ukuran input konsisten (mis. 224x224)
+      - Normalisasi nilai pixel ke rentang [0, 1] atau dengan mean/std dataset
+      - Konversi ke grayscale jika warna tidak diperlukan (mengurangi channel dari 3 ke 1)
+
+- **Keseimbangan kelas (class balance)**
+
+   - Dataset XPQRS di repo ini berimbang per desain: 1.000 sampel per kelas (17 kelas → 17.000 sampel). Oleh karena itu langkah oversampling tidak diperlukan.
+   - Split train/val/test dilakukan dengan `stratify=y` untuk mempertahankan proporsi kelas pada setiap split (lihat `src/train_cnn.py` dan `src/train_dnn.py` yang menggunakan `train_test_split(..., stratify=y, ...)`).
+   - Jika dataset tidak seimbang, opsi mitigasi yang tersedia: oversampling (SMOTE), undersampling, atau menggunakan `class_weight` di loss function (PyTorch `CrossEntropyLoss(weight=...)` atau scikit-learn `class_weight='balanced'`).
+
 ---
+
+Ringkasan: implementasi kode saat ini sudah menerapkan standardisasi (`StandardScaler`), encoding label (`LabelEncoder`), dan reshape untuk `CNN 1D`. Preprocessing mem-drop sample yang tidak mengandung data numerik dan split menggunakan `stratify` sehingga keseimbangan kelas tetap terjaga.
 
 ## 📝 Dokumentasi Lengkap
 
