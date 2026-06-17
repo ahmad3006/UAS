@@ -1,6 +1,9 @@
-# XPQRS Deep Learning Project
+# SUBMISSION - XPQRS Signal Classification with Deep Learning
 
-Proyek ini membangun pipeline lengkap untuk klasifikasi 17 jenis gangguan sinyal listrik pada dataset XPQRS. Tujuan utama adalah menguji model machine learning klasik dan deep learning, lalu menghasilkan dokumentasi serta hasil yang siap dipresentasikan.
+**Project:** Klasifikasi 17 Gangguan Sinyal Sistem Tenaga Listrik (XPQRS) menggunakan Machine Learning & Deep Learning  
+**Subject:** Kecerdasan Buatan (Artificial Intelligence)  
+**Dataset:** 17.000 sampel (1.000 sampel per kelas untuk 17 kelas)
+**Date:** Juni 2026
 
 ## Tujuan Proyek
 - Mengidentifikasi gangguan sinyal listrik menggunakan data `.mat`
@@ -138,4 +141,146 @@ python -m src.analyze_errors
 
 ---
 
-README ini sekarang lebih lengkap untuk presentasi tugas besar, karena mencakup tujuan, dataset, metodologi, arsitektur, hasil, dan kaitan dengan persyaratan PDF.
+---
+
+## 📁 Struktur Folder Submission
+
+```
+submission/
+├── README.md                          # File ini
+├── models/                            # Model terlatih (pickle format)
+│   ├── trained_dnn.pkl               # MLP Neural Network
+│   ├── trained_cnn.pkl               # CNN 1D (PyTorch)
+│   └── scaler_dnn.pkl                # StandardScaler untuk preprocessing
+├── results/                           # Hasil evaluasi & laporan
+│   ├── training_dnn_report.txt
+│   ├── training_cnn_report.txt
+│   ├── error_analysis_report.txt
+│   ├── hyperparameter_tuning_results.txt
+│   ├── dnn_experiments_report.txt
+│   └── test_split.pkl                # Data test untuk evaluasi
+├── documentation/                     # Laporan & dokumentasi
+│   ├── LAPORAN_TUGAS_BESAR.md         # Laporan lengkap
+│   ├── README.md                      # User guide
+│   └── PANDUAN_TEKNIS.md              # Technical documentation
+└── code/                              # Script Python
+  ├── explore_data.py                # Eksplorasi dataset
+  ├── load_data.py                   # Data loader
+  ├── preprocess.py                  # Preprocessing & feature extraction
+  ├── train_model.py                 # Training Random Forest
+  ├── train_dnn.py                   # Training MLP Neural Network
+  ├── train_cnn.py                   # Training CNN 1D
+  ├── evaluate_model.py              # Model evaluation
+  ├── dnn_experiments.py             # Perbandingan raw vs engineered features
+  ├── hyperparameter_tuning.py       # Hyperparameter optimization
+  ├── analyze_errors.py              # Error analysis & confusion matrix
+  └── visualize.py                   # Visualisasi hasil
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Setup Environment
+```bash
+python -m venv venv
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Menjalankan Pipeline
+
+**A. Eksplorasi Data:**
+```bash
+python -m src.explore_data
+```
+
+**B. Training Models:**
+
+Option 1 - MLP dengan Raw Signal:
+```bash
+python -m src.train_dnn
+```
+
+Option 2 - MLP dengan Engineered Features:
+```bash
+python -m src.train_dnn --feature-set
+```
+
+Option 3 - CNN 1D:
+```bash
+python -m src.train_cnn --epochs 50 --batch-size 128
+```
+
+**C. Eksperimen & Tuning:**
+
+Perbandingan Raw vs Engineered Features:
+```bash
+python -m src.dnn_experiments
+```
+
+Hyperparameter Tuning:
+```bash
+python -m src.hyperparameter_tuning
+```
+
+**D. Evaluasi & Analisis:**
+
+Evaluasi model terlatih:
+```bash
+python -m src.evaluate_model --model models/trained_dnn.pkl
+```
+
+Analisis error & confusion matrix:
+```bash
+python -m src.analyze_errors
+```
+
+Visualisasi hasil:
+```bash
+python -m src.visualize
+```
+
+---
+
+## 📊 Output & Hasil
+
+### Model Files (dalam `models/`)
+- `trained_dnn.pkl` - MLP model + scaler + encoder
+- `trained_cnn.pkl` - CNN 1D model + scaler + encoder  
+- `scaler_dnn.pkl` - StandardScaler untuk preprocessing
+
+### Report Files (dalam `results/`)
+- `training_dnn_report.txt` - MLP training accuracy & classification report
+- `training_cnn_report.txt` - CNN training history & final accuracy
+- `error_analysis_report.txt` - Detailed error analysis & confusion matrix
+- `hyperparameter_tuning_results.txt` - Tuning results & best configurations
+- `dnn_experiments_report.txt` - Perbandingan model performance
+- `training_history_dnn.pkl` - Serialized training history for MLP (loss & accuracy per epoch)
+
+### Data & Training History Files
+- `test_split.pkl` - Test set data untuk evaluasi model
+- `val_split.pkl` - Validation set data
+- `train_split.pkl` - Training set data
+- `training_history_cnn.pkl` - CNN loss & accuracy per epoch
+- `training_history_dnn.pkl` - MLP loss & accuracy per epoch (format: dict dengan keys `train_loss`, `val_loss`, `train_acc`, `val_acc`)
+
+---
+
+## 📈 Model Performance
+
+| Model | Input Type | Validation Acc | Test Acc | Best For |
+|-------|-----------|---|---|---|
+| Random Forest | Extracted Features | ~95% | ~90% | Baseline / Interpretability |
+| MLP | Raw Signal | ~59% | ~54% | Speed / Simplicity |
+| MLP | Engineered Features | [TBD] | [TBD] | Feature richness |
+| CNN 1D | Raw Signal | [TBD] | [TBD] | Time-series pattern recognition |
+
+
+## 3.1 Preprocessing Data
+
+Bagian ini menjawab persyaratan detail preprocessing untuk dataset XPQRS dan menjelaskan keputusan yang diterapkan di pipeline.
+
+... (content continues)
