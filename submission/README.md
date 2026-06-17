@@ -1,7 +1,8 @@
 # SUBMISSION - XPQRS Signal Classification with Deep Learning
 
-**Project:** Klasifikasi Gangguan Sinyal Sistem Tenaga Listrik menggunakan Machine Learning & Deep Learning  
+**Project:** Klasifikasi 17 Gangguan Sinyal Sistem Tenaga Listrik (XPQRS) menggunakan Machine Learning & Deep Learning  
 **Subject:** Kecerdasan Buatan (Artificial Intelligence)  
+**Dataset:** 17.000 sampel (1.000 sampel per kelas untuk 17 kelas)
 **Date:** Juni 2026
 
 ---
@@ -122,12 +123,14 @@ python code/visualize.py
 - `error_analysis_report.txt` - Detailed error analysis & confusion matrix
 - `hyperparameter_tuning_results.txt` - Tuning results & best configurations
 - `dnn_experiments_report.txt` - Perbandingan model performance
+ - `training_history_dnn.pkl` - Serialized training history for MLP (loss & accuracy per epoch)
 
-### Data Files
+### Data & Training History Files
 - `test_split.pkl` - Test set data untuk evaluasi model
 - `val_split.pkl` - Validation set data
 - `train_split.pkl` - Training set data
 - `training_history_cnn.pkl` - CNN loss & accuracy per epoch
+- `training_history_dnn.pkl` - MLP loss & accuracy per epoch (format: dict dengan keys `train_loss`, `val_loss`, `train_acc`, `val_acc`)
 
 ---
 
@@ -162,6 +165,57 @@ python code/visualize.py
    - API documentation
 
 ---
+
+## 📐 Detail Arsitektur & Matematika
+
+Bagian ini menyajikan ringkasan matematis untuk layer utama yang digunakan dalam implementasi MLP dan CNN 1D sesuai Panduan Tugas Besar.
+
+- **Dense / Fully-Connected Layer (MLP)**
+
+   Setiap neuron pada layer dense menghitung output sebagai fungsi afine diikuti aktivasi:
+
+   $$z = W \cdot x + b$$
+   $$y = \phi(z)$$
+
+   di mana $x$ adalah vektor input, $W$ matriks bobot, $b$ bias, dan $\phi$ adalah fungsi aktivasi (contoh: ReLU atau softmax untuk layer akhir).
+
+- **1D Convolution (Conv1D)**
+
+   Conv1D menerapkan kernel (filter) pada sinyal menggunakan konsep *sliding window* di sepanjang dimensi waktu. Untuk filter $k$ berukuran $m$, output pada posisi $t$ dinyatakan sebagai:
+
+   $$y[t] = \sum_{i=0}^{m-1} w[i] \cdot x[t + i] + b$$
+
+   Diimplementasikan berulang dengan pergeseran stride (biasanya stride=1) sehingga pola lokal temporal dapat dideteksi.
+
+- **Pooling (dimensionality reduction)**
+
+   Pooling seperti max-pooling merangkum nilai dalam jendela lokal untuk mengurangi resolusi temporal dan menekan variansi:
+
+   $$y_{pool}[j] = \max_{i\in W_j} x[i]$$
+
+   di mana $W_j$ adalah indeks elemen di jendela pooling ke-$j$. Pooling mengurangi panjang urutan (sequence length) dan membantu mendapatkan representasi yang lebih ringkas.
+
+Referensi implementasi matematika juga tercermin langsung pada `src/train_dnn.py` (MLP) dan `src/train_cnn.py` (Conv1D + pooling).
+
+---
+
+## 🔍 Metodologi Visualisasi (Update)
+
+`src/visualize.py` sekarang mendukung studi komparatif antara `CNN 1D` dan `MLP` (MLP juga disebut DNN dalam codebase). Fitur utama:
+
+- Plot training history untuk kedua model (loss & accuracy per epoch):
+   - MLP: membaca `training_history_dnn.pkl` (keys: `train_loss`, `val_loss`, `train_acc`, `val_acc`).
+   - CNN: membaca `training_history_cnn.pkl` (keys: `train_losses`, `val_losses`, `train_accs`, `val_accs`).
+- Confusion matrix untuk 17 kelas gangguan dari model yang tersimpan (`trained_dnn.pkl` dan `trained_cnn.pkl`).
+- Visualisasi perbandingan waktu-domain vs frekuensi-domain, statistik kelas, dan waveform sampling.
+
+Untuk menjalankan visualisasi:
+
+```bash
+python code/visualize.py
+```
+
+Hasil plot disimpan di folder `visualizations/` dan juga ditampilkan interaktif.
 
 ## 🛠️ Teknologi & Library
 
@@ -235,4 +289,4 @@ Dataset XPQRS: Archive/XPQRS folder
 ---
 
 **Created:** Juni 2026  
-**Last Updated:** Juni 2026
+**Last Updated:** 2026-06-18
