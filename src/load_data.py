@@ -26,8 +26,17 @@ def parse_value(value: str) -> Any:
         return value
 
 
-def load_csv_file(file_path: Path) -> Dict[str, Any]:
-    """Load a single CSV file and return its signal plus metadata."""
+def _is_number(value: Any) -> bool:
+    try:
+        float(value)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def load_csv_file(file_path: Path) -> List[Dict[str, Any]]:
+    """Load a single CSV file; each row is one signal sample."""
+    label = infer_label_from_filename(file_path)
     with file_path.open(newline="") as handle:
         reader = csv.reader(handle)
         rows = [row for row in reader if row]
@@ -35,26 +44,37 @@ def load_csv_file(file_path: Path) -> Dict[str, Any]:
     if not rows:
         raise ValueError(f"CSV file is empty: {file_path}")
 
-    parsed_rows = [[parse_value(cell) for cell in row] for row in rows]
-    signal = parsed_rows[0] if len(parsed_rows) == 1 else parsed_rows
+    records: List[Dict[str, Any]] = []
+    for signal_index, row in enumerate(rows):
+        parsed_row = [parse_value(cell) for cell in row]
+        signal = [float(value) for value in parsed_row if _is_number(value)]
+        if not signal:
+            continue
 
-    return {
-        "file_path": file_path,
-        "label": infer_label_from_filename(file_path),
-        "columns": len(parsed_rows[0]),
-        "n_rows": len(parsed_rows),
-        "signal": signal,
-        "raw_rows": parsed_rows,
-    }
+        records.append(
+            {
+                "file_path": file_path,
+                "label": label,
+                "signal_index": signal_index,
+                "columns": len(parsed_row),
+                "n_rows": 1,
+                "signal": signal,
+                "raw_rows": [parsed_row],
+            }
+        )
+    return records
 
 
 def load_all_csv_data(data_dir: Path = DATA_DIR) -> List[Dict[str, Any]]:
-    """Load every CSV file in the dataset folder."""
+    """Load every signal from all CSV files in the dataset folder."""
     csv_files = list_csv_files(data_dir)
     if not csv_files:
         raise FileNotFoundError(f"No CSV files found in {data_dir}")
 
-    return [load_csv_file(file_path) for file_path in csv_files]
+    records: List[Dict[str, Any]] = []
+    for file_path in csv_files:
+        records.extend(load_csv_file(file_path))
+    return records
 
 
 def summarize_records(records: List[Dict[str, Any]]) -> Dict[str, int]:
@@ -76,7 +96,7 @@ def main() -> None:
     records = load_all_csv_data(DATA_DIR)
     summary = summarize_records(records)
 
-    print(f"Loaded {len(records)} files.")
+    print(f"Loaded {len(records)} signal samples from {len(summary)} class files.")
     print("Label counts:")
     for label, count in summary.items():
         print(f"  - {label}: {count}")
@@ -85,10 +105,9 @@ def main() -> None:
     print("\nSample record:")
     print(f"  file_path: {first['file_path'].name}")
     print(f"  label: {first['label']}")
-    print(f"  n_rows: {first['n_rows']}")
-    print(f"  columns: {first['columns']}")
-    if isinstance(first['signal'], list) and first['n_rows'] == 1:
-        print(f"  first 10 values: {first['signal'][:10]}")
+    print(f"  signal_index: {first['signal_index']}")
+    print(f"  timesteps: {first['columns']}")
+    print(f"  first 10 values: {first['signal'][:10]}")
 
     output_path = Path(__file__).resolve().parent.parent / "loaded_dataset.pkl"
     save_records(records, output_path)

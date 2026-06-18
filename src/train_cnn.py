@@ -14,11 +14,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
+from src.paths import MODELS_DIR, RESULTS_DIR, MAT_PATH, ensure_dirs
+
 DATA_DIR = Path(__file__).resolve().parent.parent
-MAT_PATH = DATA_DIR / "archive" / "XPQRS" / "5Kfs_1Cycle_50f_1000Sam_1A.mat"
-MODEL_PATH = DATA_DIR / "trained_cnn.pkl"
-REPORT_PATH = DATA_DIR / "training_cnn_report.txt"
-TEST_SPLIT_PATH = DATA_DIR / "test_split_cnn.pkl"
+MODEL_PATH = MODELS_DIR / "trained_cnn.pkl"
+REPORT_PATH = RESULTS_DIR / "training_cnn_report.txt"
+TEST_SPLIT_PATH = RESULTS_DIR / "test_split_cnn.pkl"
 
 CLASS_NAMES = [
     "Pure Sinusoidal",
@@ -206,6 +207,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    ensure_dirs()
     print(f"Loading dataset from: {MAT_PATH}")
     X, y = load_dataset(MAT_PATH)
     print(f"Loaded {X.shape[0]} examples with {X.shape[1]} timesteps each.")
@@ -261,7 +263,7 @@ def main() -> None:
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             patience_counter = 0
-            torch.save(model.state_dict(), DATA_DIR / "best_cnn_model.pth")
+            torch.save(model.state_dict(), MODELS_DIR / "best_cnn_model.pth")
         else:
             patience_counter += 1
 
@@ -269,7 +271,7 @@ def main() -> None:
             print(f"Early stopping at epoch {epoch + 1}")
             break
 
-    model.load_state_dict(torch.load(DATA_DIR / "best_cnn_model.pth"))
+    model.load_state_dict(torch.load(MODELS_DIR / "best_cnn_model.pth", weights_only=True))
 
     y_val_pred = predict(model, X_val)
     y_test_pred = predict(model, X_test)
@@ -307,7 +309,7 @@ def main() -> None:
             "train_accs": train_accs,
             "val_accs": val_accs,
         },
-        DATA_DIR / "training_history_cnn.pkl",
+        RESULTS_DIR / "training_history_cnn.pkl",
     )
 
     REPORT_PATH.write_text("\n".join(report), encoding="utf-8")

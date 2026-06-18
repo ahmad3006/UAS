@@ -100,9 +100,10 @@ def extract_features(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             continue
 
         stats = describe_signal(signal)
+        signal_index = record.get("signal_index", 0)
         features.append(
             {
-                "file_name": record["file_path"].name,
+                "file_name": f"{record['file_path'].stem}_{signal_index}",
                 "label": record["label"],
                 "n_values": len(signal),
                 **stats,

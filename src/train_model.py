@@ -6,12 +6,14 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from src.paths import MODELS_DIR, RESULTS_DIR, ensure_dirs
+
 DATA_DIR = Path(__file__).resolve().parent.parent
 FEATURES_PKL = DATA_DIR / "processed_features.pkl"
 FEATURES_CSV = DATA_DIR / "processed_features.csv"
-MODEL_PATH = DATA_DIR / "trained_model.pkl"
-REPORT_PATH = DATA_DIR / "training_report.txt"
-TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
+MODEL_PATH = MODELS_DIR / "trained_model.pkl"
+REPORT_PATH = RESULTS_DIR / "training_rf_report.txt"
+TEST_SPLIT_PATH = RESULTS_DIR / "test_split_rf.pkl"
 
 try:
     from sklearn.ensemble import RandomForestClassifier
@@ -126,11 +128,12 @@ def main() -> None:
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.3,
+        test_size=0.10,
         random_state=42,
         stratify=stratify,
     )
 
+    ensure_dirs()
     model = train_model(X_train, y_train)
     y_pred = model.predict(X_test)
 

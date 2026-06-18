@@ -7,11 +7,18 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from src.paths import (
+    PROCESSED_FEATURES_CSV,
+    PROCESSED_FEATURES_PKL,
+    rf_model_path,
+    rf_test_split_path,
+)
+
 DATA_DIR = Path(__file__).resolve().parent.parent
-FEATURES_PKL = DATA_DIR / "processed_features.pkl"
-FEATURES_CSV = DATA_DIR / "processed_features.csv"
-MODEL_PATH = DATA_DIR / "trained_model.pkl"
-TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
+FEATURES_PKL = PROCESSED_FEATURES_PKL
+FEATURES_CSV = PROCESSED_FEATURES_CSV
+MODEL_PATH = rf_model_path()
+TEST_SPLIT_PATH = rf_test_split_path()
 
 try:
     from sklearn.metrics import accuracy_score, classification_report, confusion_matrix

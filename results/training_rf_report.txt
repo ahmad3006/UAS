@@ -1,0 +1,46 @@
+Accuracy: 0.8376
+
+Classification Report:
+                                  precision    recall  f1-score   support
+
+                         Flicker       0.97      1.00      0.99       100
+                Flicker with Sag       0.70      0.83      0.76       100
+              Flicker with Swell       0.60      0.67      0.63       100
+                       Harmonics       1.00      0.99      0.99       100
+              Harmonics with Sag       0.73      0.64      0.68       100
+            Harmonics with Swell       0.58      0.60      0.59       100
+                    Interruption       0.94      0.98      0.96       100
+                           Notch       0.96      0.93      0.94       100
+           Oscillatory Transient       0.92      0.92      0.92       100
+                 Pure Sinusoidal       0.99      1.00      1.00       100
+                             Sag       0.95      0.94      0.94       100
+              Sag with Harmonics       0.74      0.73      0.73       100
+  Sag with Oscillatory Transient       0.90      0.77      0.83       100
+                           Swell       0.96      1.00      0.98       100
+            Swell with Harmonics       0.63      0.63      0.63       100
+Swell with Oscillatory Transient       0.78      0.63      0.70       100
+                       Transient       0.93      0.98      0.96       100
+
+                        accuracy                           0.84      1700
+                       macro avg       0.84      0.84      0.84      1700
+                    weighted avg       0.84      0.84      0.84      1700
+
+
+Confusion Matrix:
+[[100   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0]
+ [  0  83   0   0  13   0   0   0   0   0   0   4   0   0   0   0   0]
+ [  2   0  67   0   0  14   0   0   0   0   0   0   0   1  14   2   0]
+ [  1   0   0  99   0   0   0   0   0   0   0   0   0   0   0   0   0]
+ [  0  27   0   0  64   0   0   0   0   0   1   8   0   0   0   0   0]
+ [  0   1  22   0   0  60   0   0   0   0   0   0   0   1  11   5   0]
+ [  0   0   0   0   0   0  98   0   0   0   2   0   0   0   0   0   0]
+ [  0   0   0   0   0   0   0  93   2   0   0   0   0   0   0   0   5]
+ [  0   0   0   0   0   0   0   1  92   0   0   0   1   0   0   5   1]
+ [  0   0   0   0   0   0   0   0   0 100   0   0   0   0   0   0   0]
+ [  0   0   0   0   0   0   6   0   0   0  94   0   0   0   0   0   0]
+ [  0   7   0   0  10   0   0   0   0   0   1  73   8   0   0   0   1]
+ [  0   1   0   0   1   0   0   2   4   0   1  14  77   0   0   0   0]
+ [  0   0   0   0   0   0   0   0   0   0   0   0   0 100   0   0   0]
+ [  0   0  16   0   0  12   0   0   1   0   0   0   0   2  63   6   0]
+ [  0   0   7   0   0  17   0   0   1   0   0   0   0   0  12  63   0]
+ [  0   0   0   0   0   0   0   1   0   1   0   0   0   0   0   0  98]]

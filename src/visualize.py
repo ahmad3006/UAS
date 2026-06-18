@@ -1,23 +1,32 @@
-"""Visualize XPQRS signal samples and DNN evaluation results."""
+"""Visualize XPQRS signal samples and model evaluation results."""
 
+import argparse
 from pathlib import Path
 import pickle
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from scipy.io import loadmat
 from sklearn.metrics import confusion_matrix
 
-from train_cnn import CNN1D
+from src.paths import (
+    MAT_PATH,
+    VISUALIZATIONS_DIR,
+    cnn_history_path,
+    cnn_model_path,
+    cnn_test_split_path,
+    dnn_history_path,
+    dnn_model_path,
+    dnn_test_split_path,
+    ensure_dirs,
+)
+from src.train_cnn import CNN1D
 
-DATA_DIR = Path(__file__).resolve().parent.parent
-MAT_PATH = DATA_DIR / "archive" / "XPQRS" / "5Kfs_1Cycle_50f_1000Sam_1A.mat"
-DNN_MODEL_PATH = DATA_DIR / "trained_dnn.pkl"
-DNN_TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
-CNN_MODEL_PATH = DATA_DIR / "trained_cnn.pkl"
-CNN_TEST_SPLIT_PATH = DATA_DIR / "test_split_cnn.pkl"
 CLASS_NAMES = [
     "Pure Sinusoidal",
     "Sag",
@@ -38,7 +47,33 @@ CLASS_NAMES = [
     "Notch",
 ]
 
-OUTPUT_DIR = DATA_DIR / "visualizations"
+SHOW_PLOTS = False
+
+
+def configure_display(show: bool) -> None:
+    global SHOW_PLOTS
+    SHOW_PLOTS = show
+    if show:
+        try:
+            matplotlib.use("TkAgg")
+            plt.switch_backend("TkAgg")
+        except Exception:
+            pass
+
+
+def maybe_show() -> None:
+    if SHOW_PLOTS:
+        plt.show()
+    else:
+        plt.close()
+
+
+def save_current_figure(filename: str) -> Path:
+    ensure_dirs()
+    output_path = VISUALIZATIONS_DIR / filename
+    plt.gcf().savefig(output_path, dpi=200, bbox_inches="tight")
+    print(f"Saved plot to: {output_path}")
+    return output_path
 
 
 def load_signal_data(mat_path: Path = MAT_PATH) -> Tuple[np.ndarray, List[str]]:
@@ -76,7 +111,8 @@ def plot_waveforms(X: np.ndarray, y: List[str], class_indexes: List[int]) -> Non
             plt.ylabel("Amplitude")
     plt.tight_layout()
     plt.suptitle("Raw XPQRS Signal Waveforms", y=1.02)
-    plt.show()
+    save_current_figure("waveforms.png")
+    maybe_show()
 
 
 def plot_fft(X: np.ndarray, y: List[str], class_index: int) -> None:
@@ -92,19 +128,28 @@ def plot_fft(X: np.ndarray, y: List[str], class_index: int) -> None:
     plt.ylabel("Magnitude")
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    save_current_figure("fft_sample.png")
+    maybe_show()
 
 
-def plot_dnn_confusion_matrix() -> None:
-    if not DNN_MODEL_PATH.exists() or not DNN_TEST_SPLIT_PATH.exists():
-        raise FileNotFoundError("DNN trained model or DNN test split not found. Run src/train_dnn.py first.")
+def plot_dnn_confusion_matrix(model_path: Optional[Path] = None, test_split_path: Optional[Path] = None) -> None:
+    model_path = model_path or dnn_model_path()
+    test_split_path = test_split_path or dnn_test_split_path()
 
-    with DNN_MODEL_PATH.open("rb") as handle:
+    if not model_path.exists() or not test_split_path.exists():
+        raise FileNotFoundError(
+            f"DNN model or test split not found.\n"
+            f"  model: {model_path}\n"
+            f"  test split: {test_split_path}\n"
+            f"Run: python -m src.train_dnn"
+        )
+
+    with model_path.open("rb") as handle:
         model_data = pickle.load(handle)
     model = model_data["model"]
     label_encoder = model_data["label_encoder"]
 
-    with DNN_TEST_SPLIT_PATH.open("rb") as handle:
+    with test_split_path.open("rb") as handle:
         split_data = pickle.load(handle)
     X_test = split_data["X_test"]
     y_test = split_data["y_test"]
@@ -127,22 +172,26 @@ def plot_dnn_confusion_matrix() -> None:
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.tight_layout()
-    fig = plt.gcf()
-    ensure_output_dir()
-    cm_plot_path = OUTPUT_DIR / "dnn_confusion_matrix.png"
-    fig.savefig(cm_plot_path, dpi=200, bbox_inches="tight")
-    print(f"Saved DNN confusion matrix to: {cm_plot_path}")
-    plt.show()
+    save_current_figure("dnn_confusion_matrix.png")
+    maybe_show()
 
 
-def plot_cnn_confusion_matrix() -> None:
-    if not CNN_MODEL_PATH.exists() or not CNN_TEST_SPLIT_PATH.exists():
-        raise FileNotFoundError("CNN trained model or CNN test split not found. Run src/train_cnn.py first.")
+def plot_cnn_confusion_matrix(model_path: Optional[Path] = None, test_split_path: Optional[Path] = None) -> None:
+    model_path = model_path or cnn_model_path()
+    test_split_path = test_split_path or cnn_test_split_path()
 
-    with CNN_MODEL_PATH.open("rb") as handle:
+    if not model_path.exists() or not test_split_path.exists():
+        raise FileNotFoundError(
+            f"CNN model or test split not found.\n"
+            f"  model: {model_path}\n"
+            f"  test split: {test_split_path}\n"
+            f"Run: python -m src.train_cnn"
+        )
+
+    with model_path.open("rb") as handle:
         model_data = pickle.load(handle)
 
-    with CNN_TEST_SPLIT_PATH.open("rb") as handle:
+    with test_split_path.open("rb") as handle:
         split_data = pickle.load(handle)
     X_test = split_data["X_test"]
     y_test = split_data["y_test"]
@@ -173,16 +222,8 @@ def plot_cnn_confusion_matrix() -> None:
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.tight_layout()
-    fig = plt.gcf()
-    ensure_output_dir()
-    cm_plot_path = OUTPUT_DIR / "cnn_confusion_matrix.png"
-    fig.savefig(cm_plot_path, dpi=200, bbox_inches="tight")
-    print(f"Saved CNN confusion matrix to: {cm_plot_path}")
-    plt.show()
-
-
-def ensure_output_dir() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    save_current_figure("cnn_confusion_matrix.png")
+    maybe_show()
 
 
 def load_training_history(history_path: Path) -> dict:
@@ -192,13 +233,10 @@ def load_training_history(history_path: Path) -> dict:
         return pickle.load(handle)
 
 
-def load_dnn_training_history() -> dict:
-    return load_training_history(DATA_DIR / "training_history_dnn.pkl")
-
-
-def plot_dnn_training_history() -> None:
+def plot_dnn_training_history(history_path: Optional[Path] = None) -> None:
+    history_path = history_path or dnn_history_path()
     try:
-        history = load_dnn_training_history()
+        history = load_training_history(history_path)
     except FileNotFoundError:
         print("DNN training history not found. Skipping DNN training plot.")
         return
@@ -212,7 +250,6 @@ def plot_dnn_training_history() -> None:
         print("DNN training history is incomplete.")
         return
 
-    ensure_output_dir()
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     axes[0].plot(train_losses, label="Train Loss", color="tab:blue", linewidth=2)
@@ -232,21 +269,20 @@ def plot_dnn_training_history() -> None:
     axes[1].grid(True)
 
     plt.tight_layout()
-    plot_path = OUTPUT_DIR / "training_history_dnn.png"
+    ensure_dirs()
+    plot_path = VISUALIZATIONS_DIR / "training_history_dnn.png"
     fig.savefig(plot_path, dpi=200, bbox_inches="tight")
     print(f"Saved DNN training history plot to: {plot_path}")
-    plt.show()
+    maybe_show()
 
 
-def plot_training_history() -> None:
-    history_path = DATA_DIR / "training_history_cnn.pkl"
+def plot_cnn_training_history(history_path: Optional[Path] = None) -> None:
+    history_path = history_path or cnn_history_path()
     if not history_path.exists():
-        print("Training history not found. Skipping training plot.")
+        print("CNN training history not found. Skipping training plot.")
         return
 
-    with history_path.open("rb") as handle:
-        history = pickle.load(handle)
-
+    history = load_training_history(history_path)
     train_losses = history.get("train_losses", [])
     val_losses = history.get("val_losses", [])
     train_accs = history.get("train_accs", [])
@@ -275,73 +311,97 @@ def plot_training_history() -> None:
     axes[1].grid(True)
 
     plt.tight_layout()
-    ensure_output_dir()
-    cnn_plot_path = OUTPUT_DIR / "training_history_cnn.png"
-    fig.savefig(cnn_plot_path, dpi=200, bbox_inches="tight")
-    print(f"Saved CNN training history plot to: {cnn_plot_path}")
-    plt.show()
+    ensure_dirs()
+    plot_path = VISUALIZATIONS_DIR / "training_history_cnn.png"
+    fig.savefig(plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved CNN training history plot to: {plot_path}")
+    maybe_show()
 
 
 def plot_signal_comparison() -> None:
-    X, y = load_signal_data()
-    
+    X, _ = load_signal_data()
+
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    
-    classes_to_plot = [0, 3]  # Pure Sinusoidal dan Sag
-    
+    classes_to_plot = [0, 3]
+
     for idx, class_idx in enumerate(classes_to_plot):
         sample_idx = class_idx * 1000
         signal = X[sample_idx]
         fft_mag = np.abs(np.fft.rfft(signal))
-        
+
         axes[idx, 0].plot(signal, linewidth=1.5)
         axes[idx, 0].set_title(f"{CLASS_NAMES[class_idx]} - Time Domain")
         axes[idx, 0].set_xlabel("Timestep")
         axes[idx, 0].set_ylabel("Amplitude")
         axes[idx, 0].grid(True)
-        
+
         axes[idx, 1].plot(fft_mag, linewidth=1.5, color="orange")
         axes[idx, 1].set_title(f"{CLASS_NAMES[class_idx]} - Frequency Domain (FFT)")
         axes[idx, 1].set_xlabel("Frequency Bin")
         axes[idx, 1].set_ylabel("Magnitude")
         axes[idx, 1].grid(True)
-    
+
     plt.tight_layout()
-    plt.show()
+    ensure_dirs()
+    plot_path = VISUALIZATIONS_DIR / "signal_comparison.png"
+    fig.savefig(plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved signal comparison plot to: {plot_path}")
+    maybe_show()
 
 
 def plot_class_statistics() -> None:
-    X, y = load_signal_data()
-    
+    X, _ = load_signal_data()
+
     class_means = []
     class_stds = []
-    
+
     for class_idx in range(len(CLASS_NAMES)):
         start = class_idx * 1000
         end = start + 1000
         signals = X[start:end]
         class_means.append(signals.mean())
         class_stds.append(signals.std())
-    
+
+    x_positions = np.arange(len(CLASS_NAMES))
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    
-    axes[0].bar(range(len(CLASS_NAMES)), class_means)
+
+    axes[0].bar(x_positions, class_means)
     axes[0].set_xlabel("Class Index")
     axes[0].set_ylabel("Mean Amplitude")
     axes[0].set_title("Mean Amplitude by Class")
-    axes[0].set_xticklabels([str(i) for i in range(len(CLASS_NAMES))], rotation=45)
-    
-    axes[1].bar(range(len(CLASS_NAMES)), class_stds, color="orange")
+    axes[0].set_xticks(x_positions)
+    axes[0].set_xticklabels([str(i) for i in x_positions], rotation=45)
+
+    axes[1].bar(x_positions, class_stds, color="orange")
     axes[1].set_xlabel("Class Index")
     axes[1].set_ylabel("Std Amplitude")
     axes[1].set_title("Std Deviation by Class")
-    axes[1].set_xticklabels([str(i) for i in range(len(CLASS_NAMES))], rotation=45)
-    
+    axes[1].set_xticks(x_positions)
+    axes[1].set_xticklabels([str(i) for i in x_positions], rotation=45)
+
     plt.tight_layout()
-    plt.show()
+    ensure_dirs()
+    plot_path = VISUALIZATIONS_DIR / "class_statistics.png"
+    fig.savefig(plot_path, dpi=200, bbox_inches="tight")
+    print(f"Saved class statistics plot to: {plot_path}")
+    maybe_show()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate XPQRS visualizations.")
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="Display plots interactively after saving them.",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
+    args = parse_args()
+    configure_display(args.show)
+    ensure_dirs()
+
     X, y = load_signal_data()
     print("Loaded raw XPQRS signal data.")
 
@@ -358,25 +418,29 @@ def main() -> None:
     print("Plotting class statistics (mean and std)...")
     plot_class_statistics()
 
-    if (DATA_DIR / "training_history_cnn.pkl").exists():
-        print("Plotting CNN training history...")
-        plot_training_history()
+    print("Plotting CNN training history...")
+    plot_cnn_training_history()
 
-    if (DATA_DIR / "training_history_dnn.pkl").exists():
-        print("Plotting DNN training history...")
-        plot_dnn_training_history()
+    print("Plotting DNN training history...")
+    plot_dnn_training_history()
 
-    if CNN_MODEL_PATH.exists() and CNN_TEST_SPLIT_PATH.exists():
+    cnn_model = cnn_model_path()
+    cnn_split = cnn_test_split_path()
+    if cnn_model.exists() and cnn_split.exists():
         print("Plotting confusion matrix for saved CNN model...")
-        plot_cnn_confusion_matrix()
+        plot_cnn_confusion_matrix(cnn_model, cnn_split)
     else:
         print("CNN model/test split tidak ditemukan; lewati plot CNN confusion matrix.")
 
-    if DNN_MODEL_PATH.exists() and DNN_TEST_SPLIT_PATH.exists():
+    dnn_model = dnn_model_path()
+    dnn_split = dnn_test_split_path()
+    if dnn_model.exists() and dnn_split.exists():
         print("Plotting confusion matrix for saved DNN model...")
-        plot_dnn_confusion_matrix()
+        plot_dnn_confusion_matrix(dnn_model, dnn_split)
     else:
         print("DNN model/test split tidak ditemukan; lewati plot DNN confusion matrix.")
+
+    print(f"\nSemua plot disimpan di: {VISUALIZATIONS_DIR}")
 
 
 if __name__ == "__main__":

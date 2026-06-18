@@ -13,13 +13,14 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, log_loss
 
+from src.paths import MODELS_DIR, RESULTS_DIR, MAT_PATH, ensure_dirs
+
 DATA_DIR = Path(__file__).resolve().parent.parent
-MAT_PATH = DATA_DIR / "archive" / "XPQRS" / "5Kfs_1Cycle_50f_1000Sam_1A.mat"
-MODEL_PATH = DATA_DIR / "trained_dnn.pkl"
-REPORT_PATH = DATA_DIR / "training_dnn_report.txt"
-TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
-SCALER_PATH = DATA_DIR / "scaler_dnn.pkl"
-HISTORY_PATH = DATA_DIR / "training_history_dnn.pkl"
+MODEL_PATH = MODELS_DIR / "trained_dnn.pkl"
+REPORT_PATH = RESULTS_DIR / "training_dnn_report.txt"
+TEST_SPLIT_PATH = RESULTS_DIR / "test_split.pkl"
+SCALER_PATH = MODELS_DIR / "scaler_dnn.pkl"
+HISTORY_PATH = RESULTS_DIR / "training_history_dnn.pkl"
 
 CLASS_NAMES = [
     "Pure Sinusoidal",
@@ -229,6 +230,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    ensure_dirs()
     print(f"Loading dataset from: {MAT_PATH}")
     X, y = load_dataset(MAT_PATH)
     print(f"Loaded {X.shape[0]} examples with {X.shape[1]} timesteps each.")
@@ -264,8 +266,8 @@ def main() -> None:
         args.model_output,
     )
     save_pickle({"X_test": X_test, "y_test": encoder.inverse_transform(y_test)}, args.test_split_output)
-    save_pickle({"X_val": X_val, "y_val": encoder.inverse_transform(y_val)}, DATA_DIR / "val_split.pkl")
-    save_pickle({"X_train": X_train, "y_train": encoder.inverse_transform(y_train)}, DATA_DIR / "train_split.pkl")
+    save_pickle({"X_val": X_val, "y_val": encoder.inverse_transform(y_val)}, RESULTS_DIR / "val_split.pkl")
+    save_pickle({"X_train": X_train, "y_train": encoder.inverse_transform(y_train)}, RESULTS_DIR / "train_split.pkl")
 
     args.report_output.write_text("\n".join(report), encoding="utf-8")
     print(f"Saved model to: {args.model_output}")

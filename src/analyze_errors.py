@@ -9,10 +9,12 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.preprocessing import LabelEncoder
 
+from src.paths import dnn_model_path, dnn_test_split_path, RESULTS_DIR
+
 DATA_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = DATA_DIR / "trained_dnn.pkl"
-TEST_SPLIT_PATH = DATA_DIR / "test_split.pkl"
-ANALYSIS_PATH = DATA_DIR / "error_analysis_report.txt"
+MODEL_PATH = dnn_model_path()
+TEST_SPLIT_PATH = dnn_test_split_path()
+ANALYSIS_PATH = RESULTS_DIR / "error_analysis_report.txt"
 
 CLASS_NAMES = [
     "Pure Sinusoidal",
